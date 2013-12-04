@@ -1,43 +1,59 @@
 import nltk
 
-sentences = []
+corpus = {}
 
-def process_texts(text_list):
+def make_corpus(text_list):
+    corpus['words'] = []
+    corpus['tagged_words'] = []
+    corpus['sents'] = []
+    corpus['tagged_sents'] = []
     #input a list of strings
     for t in text_list:
-        #normally we would use
-        #tokens = nltk.word_tokenize(t)
-        #but tweets are harder to parse, so we need some more robust rules
-
-        #set up regex rules for the tokenizer
-        sentence_re = r'''(?x)  # set flag to allow verbose regexps
-            ([A-Z])(\.[A-Z])+\.?  # abbreviations, e.g. U.S.A.
-            | (https?://[^ ]+)      # websites--we do this upstream of words because otherwise words captures 'http'
+        #set up regex rules that the tokenizer will use to parse strings
+        token_pattern = r'''(?x)  # allow verbose regex
+            ([A-Z])(\.[A-Z])+\.?  # abbreviations, e.g. U.S.A. - upstream of words
+            | (https?://[^ ]+)      # URLs - do this upstream of words because otherwise words will capture 'http'
             | \w+(-\w+)*            # words with optional internal hyphens
-            | \$?\d+(\.\d+)?%?      # currency and percentages, e.g. $12.40, 82%
-            | \#?\w+|\@?\w+         # hashtags and @ signs
+            | \$?\d+(\.\d+)?%?      # currency and percentages
+            | \#?\w+|\@?\w+         # hashtags and @signs
             | \.\.\.                # ellipsis
             | [][.,;"'?()-_`]       # these are separate tokens
-            #| http://t.co/[a-z,A-Z,0-9]{10} # twitter urls?
+            #| http://t.co/[a-z,A-Z,0-9]{10} # twitter URLs - the URL pattern above gets them just fine
             '''
         
-        #separate each string into tokens
-        tokens = nltk.regexp_tokenize(t, sentence_re)
+        #parse each string into tokens
+        tokens = nltk.regexp_tokenize(t, token_pattern)
+        
+        #merge these into the total list of words
+        corpus['words'] += tokens
 
-        #make a text for each tokenized string
-        new_text = nltk.Text(tokens)
+        #make a text (sentence) for each tokenized string 
+        #should I use the Text object, or a list of tokens?
+        #new_text = nltk.Text(tokens)
+        new_text = tokens
+
+        #append the new text to the list of sentences
+        corpus['sents'].append(new_text)
 
         #modify tagger to tag hashtags and @signs as different parts of speech
         #maybe @signs are just proper nouns--unsure about this, but can change it later
-        #should we maybe also tag urls as a part of speech?
+        #should we maybe also tag urls as a part of speech? 
+        #how about emoticons (hard to parse them, but could grab one or two specific ones)?
         default_tagger = nltk.data.load(nltk.tag._POS_TAGGER)
         model = [('\#\w+','HT'), ('\@\w+','AT')]
         tagger = nltk.RegexpTagger(model, backoff=default_tagger)
-
-        print(tagger.tag(new_text))
         
-        #drop each new text in a list
-        sentences.append(new_text)
+        #tag the tokens with part of speech
+        tagged_tokens = tagger.tag(tokens)
+
+        #merge these into the total list of tagged words
+        corpus['tagged_words'] += tagged_tokens
+        
+        #make a text for the tagged, tokenized strings
+        new_tagged_text = tagged_tokens
+
+        #append the new tagged text to the list of tagged sentences
+        corpus['tagged_sents'].append(new_tagged_text)
 
 
 sample = ['@zabraham10 for ??',
@@ -50,7 +66,7 @@ sample = ['@zabraham10 for ??',
     'RT @_RyanHowell: Imagine what a rainbow would taste like....',
     '@VCrippen this should be a broadway musical! #lol #waffles']
 
-process_texts(sample)
-print(sentences[0])
-print(sentences[1])
-print(sentences[-1:])
+make_corpus(sample)
+
+print(corpus['words'])
+

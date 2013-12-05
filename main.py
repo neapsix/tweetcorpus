@@ -1,12 +1,21 @@
 import nltk
+from nltk.corpus import treebank
+#from nltk.corpus import brown
+#from nltk.corpus import switchboard
 
-corpus = {}
+#import pandas as pd
+#import numpy as np
+#import matplotlib.pyplot as plt
+#from collections import Counter
 
 def make_corpus(text_list):
+    corpus = {}
+
     corpus['words'] = []
     corpus['tagged_words'] = []
     corpus['sents'] = []
     corpus['tagged_sents'] = []
+
     #input a list of strings
     for t in text_list:
         #set up regex rules that the tokenizer will use to parse strings
@@ -55,8 +64,10 @@ def make_corpus(text_list):
         #append the new tagged text to the list of tagged sentences
         corpus['tagged_sents'].append(new_tagged_text)
 
+    return corpus
 
-sample = ['@zabraham10 for ??',
+
+tweets = ['@zabraham10 for ??',
     'ITS TOO EARLY FOR THIS ASDFGKVLDLDo http://t.co/8Q9QlDvUoQ',
     'its just can my one up just can so me my when find u not your I',
     '-Mnager of number eight basically laughed in my face when I asked about the job in there hahaha cheers',
@@ -66,7 +77,47 @@ sample = ['@zabraham10 for ??',
     'RT @_RyanHowell: Imagine what a rainbow would taste like....',
     '@VCrippen this should be a broadway musical! #lol #waffles']
 
-make_corpus(sample)
+tc = make_corpus(tweets)
 
-print(corpus['words'])
+with open('tc_words.txt', 'w') as f:
+    for word in tc['words']:
+        f.write('%s\n' % word)
+
+with open('treebank_words.txt', 'w') as f:
+    for word in treebank.words():
+        f.write('%s\n' % word)
+
+tc_tags = []
+for t in tc['tagged_words']:
+    tc_tags.append(t[1])
+
+with open('tc_tags.txt', 'w') as f:
+    for tag in tc_tags:
+        f.write('%s\n' % tag)
+
+treebank_tags = []
+for t in treebank.tagged_words():
+    treebank_tags.append(t[1])
+
+with open('treebank_tags.txt', 'w') as f:
+    for tag in treebank_tags:
+        f.write('%s\n' % tag)
+
+with open('tc_sent_lengths.txt', 'w') as f:
+    for sent in tc['sents']:
+        f.write('%s\n' % len(sent))
+
+with open('treebank_sent_lengths.txt', 'w') as f:
+    for sent in treebank.sents():
+        f.write('%s\n' % len(sent))
+
+#tc_tags_series = pd.Series(tc_tags)
+#tc_tag_freq = tc_tags_series.value_counts()
+#tc_tag_freq.plot(kind='bar')
+
+#treebank_tags_series = pd.Series(treebank_tags)
+#treebank_tag_freq = treebank_tags_series.value_counts()
+#treebank_tag_freq.plot(kind='bar')
+
+#plt.show()
 
